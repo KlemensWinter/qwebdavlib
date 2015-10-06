@@ -55,6 +55,7 @@ Q_DECLARE_LOGGING_CATEGORY(webdavDirParser)
 Q_LOGGING_CATEGORY(webdavDirParser, "QWebdav.parser")
 
 QWebdavDirParser::QWebdavDirParser(QObject *parent) : QObject(parent)
+  ,m_mutex(QMutex::Recursive)
   ,m_webdav(0)
   ,m_reply(0)
   ,m_path()
@@ -62,7 +63,6 @@ QWebdavDirParser::QWebdavDirParser(QObject *parent) : QObject(parent)
   ,m_busy(false)
   ,m_abort(false)
 {
-    m_mutex.reset(new QMutex(QMutex::Recursive));
 }
 
 QWebdavDirParser::~QWebdavDirParser()
@@ -228,7 +228,7 @@ void QWebdavDirParser::replyFinished()
         return;
 
     {
-        QMutexLocker locker(m_mutex.data());
+        QMutexLocker locker(&m_mutex);
 
         QString contentType = m_reply->header(QNetworkRequest::ContentTypeHeader).toString();
     #ifdef DEBUG_WEBDAV
