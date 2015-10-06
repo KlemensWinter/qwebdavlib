@@ -284,15 +284,10 @@ void QWebdavDirParser::parseMultiResponse(const QByteArray &data)
     QDomDocument multiResponse;
     multiResponse.setContent(data, true);
 
-    for(QDomNode n = multiResponse.documentElement().firstChild(); !n.isNull(); n = n.nextSibling())
+    for(QDomElement thisRepsonse(multiResponse.documentElement().firstChildElement()); !thisRepsonse.isNull(); thisRepsonse = thisRepsonse.nextSiblingElement())
     {
         if (m_abort)
             return;
-
-        QDomElement thisResponse = n.toElement();
-
-        if(thisResponse.isNull())
-            continue;
 
         QString responseName = QUrl::fromPercentEncoding(thisResponse.namedItem("href").toElement().text().toUtf8());
         if(responseName.isEmpty())
@@ -408,14 +403,10 @@ void QWebdavDirParser::davParsePropstats(QString path, const QDomNodeList &props
             return;
         }
 
-        for ( QDomNode n = prop.firstChild(); !n.isNull(); n = n.nextSibling() ) {
-            QDomElement property = n.toElement();
+        for ( QDomElement property = prop.firstChildElement(); !property.isNull(); property = property.nextSiblingElement() ) {
 
             if (m_abort)
                 return;
-
-            if (property.isNull())
-                continue;
 
             if ( property.namespaceURI() != "DAV:" ) {
                 // parse only DAV namespace properties
