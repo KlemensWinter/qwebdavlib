@@ -350,24 +350,21 @@ void QWebdavDirParser::parseResponse(const QDomElement &dom)
     davParsePropstats(urlStr, propstats);
 }
 
-void QWebdavDirParser::davParsePropstats(const QString &path, const QDomNodeList &propstats)
+void QWebdavDirParser::davParsePropstats(QString path, const QDomNodeList &propstats)
 {
     if (m_abort)
         return;
 
 
-    QString path_;
     QString name;
     QString ext;
     bool dirOrFile = false;
     QDateTime lastModified;
     quint64 size = 0;
 
-    if (path.startsWith("http")) { // with scheme and authority
-        QUrl pathUrl(path);
-        path_ = pathUrl.path();
-    } else
-        path_ = path; // without scheme and authority
+    if(path.startsWith("http")) { // with scheme and authority
+        path = QUrl(path).path();
+    }
 
 #ifdef QWEBDAVITEM_EXTENDED_PROPERTIES
     QString displayName;
@@ -380,7 +377,7 @@ void QWebdavDirParser::davParsePropstats(const QString &path, const QDomNodeList
 #endif
 
     // name
-    QStringList pathElements = path_.split('/', QString::SkipEmptyParts);
+    QStringList pathElements = path.split('/', QString::SkipEmptyParts);
     name = pathElements.isEmpty() ? "/" : pathElements.back();
 
     for ( int i = 0; i < propstats.count(); i++) {
@@ -473,8 +470,8 @@ void QWebdavDirParser::davParsePropstats(const QString &path, const QDomNodeList
     }
 
     // check directory path
-    if (dirOrFile && !path_.endsWith("/"))
-        path_.append("/");
+    if (dirOrFile && !path.endsWith("/"))
+        path.append("/");
 
     // get file extension
     if (!dirOrFile) {
@@ -486,10 +483,10 @@ void QWebdavDirParser::davParsePropstats(const QString &path, const QDomNodeList
         }
     }
 
-    path_.remove(0,m_webdav->rootPath().size());
+    path.remove(0,m_webdav->rootPath().size());
 
 #ifdef QWEBDAVITEM_EXTENDED_PROPERTIES
-    m_dirList.append(QWebdavItem(path_, name,
+    m_dirList.append(QWebdavItem(path, name,
                                  ext, dirOrFile,
                                  lastModified, size,
                                  displayName, createdAt,

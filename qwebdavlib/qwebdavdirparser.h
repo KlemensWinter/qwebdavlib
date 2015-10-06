@@ -100,7 +100,7 @@ protected slots:
 protected:
     void parseMultiResponse( const QByteArray &data );
     void parseResponse( const QDomElement& dom );
-    void davParsePropstats (const QString &path, const QDomNodeList &propstats);
+    void davParsePropstats (QString path, const QDomNodeList &propstats);
     int codeFromResponse( const QString &response );
     QDateTime parseDateTime( const QString &input, const QString &type);
 
