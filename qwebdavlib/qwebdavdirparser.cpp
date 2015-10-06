@@ -54,6 +54,52 @@
 Q_DECLARE_LOGGING_CATEGORY(webdavDirParser)
 Q_LOGGING_CATEGORY(webdavDirParser, "QWebdav.parser")
 
+namespace {
+QDateTime parseDateTime(const QString &input, const QString &type)
+{
+    QDateTime datetime;
+    QLocale usLocal(QLocale::English, QLocale::UnitedStates);
+
+    if ( type == "dateTime.tz" )
+        datetime =  QDateTime::fromString(input, Qt::ISODate );
+    else if ( type == "dateTime.rfc1123" )
+        datetime = usLocal.toDateTime( input );
+
+    if (datetime.isValid())
+        return datetime;
+
+    datetime = usLocal.toDateTime(input.left(25), "ddd, dd MMM yyyy hh:mm:ss");
+    if (datetime.isValid())
+        return datetime;
+    datetime = usLocal.toDateTime(input.left(19), "yyyy-MM-ddThh:mm:ss");
+    if (datetime.isValid())
+        return datetime;
+    datetime = usLocal.toDateTime(input.mid(5, 20) , "d MMM yyyy hh:mm:ss");
+    if (datetime.isValid())
+        return datetime;
+    QDate date;
+    QTime time;
+
+    date = usLocal.toDate(input.mid(5, 11) , "d MMM yyyy");
+    time = usLocal.toTime(input.mid(17, 8) , "hh:mm:ss");
+    datetime = QDateTime(date, time);
+
+#ifdef DEBUG_WEBDAV
+    if(!datetime.isValid())
+        qDebug() << "QWebdavDirParser::parseDateTime() | Unknown date time format:" << input;
+#endif
+
+    return datetime;
+}
+
+int codeFromResponse( const QString &response )
+{
+    int firstSpace = response.indexOf( ' ' );
+    int secondSpace = response.indexOf( ' ', firstSpace + 1 );
+    return response.mid( firstSpace + 1, secondSpace - firstSpace - 1 ).toInt();
+}
+}//anon ns
+
 QWebdavDirParser::QWebdavDirParser(QObject *parent) : QObject(parent)
   ,m_mutex(QMutex::Recursive)
   ,m_webdav(0)
@@ -489,49 +535,5 @@ void QWebdavDirParser::davParsePropstats(QString path, const QDomNodeList &props
                                  ext, dirOrFile,
                                  lastModified, size));
 #endif
-}
-
-int QWebdavDirParser::codeFromResponse( const QString &response )
-{
-    int firstSpace = response.indexOf( ' ' );
-    int secondSpace = response.indexOf( ' ', firstSpace + 1 );
-    return response.mid( firstSpace + 1, secondSpace - firstSpace - 1 ).toInt();
-}
-
-QDateTime QWebdavDirParser::parseDateTime(const QString &input, const QString &type)
-{
-    QDateTime datetime;
-    QLocale usLocal(QLocale::English, QLocale::UnitedStates);
-
-    if ( type == "dateTime.tz" )
-        datetime =  QDateTime::fromString(input, Qt::ISODate );
-    else if ( type == "dateTime.rfc1123" )
-        datetime = usLocal.toDateTime( input );
-
-    if (datetime.isValid())
-        return datetime;
-
-    datetime = usLocal.toDateTime(input.left(25), "ddd, dd MMM yyyy hh:mm:ss");
-    if (datetime.isValid())
-        return datetime;
-    datetime = usLocal.toDateTime(input.left(19), "yyyy-MM-ddThh:mm:ss");
-    if (datetime.isValid())
-        return datetime;
-    datetime = usLocal.toDateTime(input.mid(5, 20) , "d MMM yyyy hh:mm:ss");
-    if (datetime.isValid())
-        return datetime;
-    QDate date;
-    QTime time;
-
-    date = usLocal.toDate(input.mid(5, 11) , "d MMM yyyy");
-    time = usLocal.toTime(input.mid(17, 8) , "hh:mm:ss");
-    datetime = QDateTime(date, time);
-
-#ifdef DEBUG_WEBDAV
-    if(!datetime.isValid())
-        qDebug() << "QWebdavDirParser::parseDateTime() | Unknown date time format:" << input;
-#endif
-
-    return datetime;
 }
 
