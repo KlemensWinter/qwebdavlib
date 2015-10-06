@@ -49,6 +49,10 @@
 ****************************************************************************/
 
 #include "qwebdavdirparser.h"
+#include <QLoggingCategory>
+
+Q_DECLARE_LOGGING_CATEGORY(webdavDirParser)
+Q_LOGGING_CATEGORY(webdavDirParser, "QWebdav.parser")
 
 QWebdavDirParser::QWebdavDirParser(QObject *parent) : QObject(parent)
   ,m_webdav(0)
@@ -71,20 +75,31 @@ QWebdavDirParser::~QWebdavDirParser()
 
 bool QWebdavDirParser::listDirectory(QWebdav *pWebdav, const QString &path)
 {
-    if (m_busy)
+    Q_ASSERT(pWebdav && "must provide pointer to QWebdav-instance");
+    if (m_busy) {
+        qWarning(webdavDirParser)<<"busy";
         return false;
+    }
 
-    if (m_reply!=0)
+    if (m_reply != 0) {
+        qWarning(webdavDirParser)<<"Already processing request";//WTF?
         return false;
+    }
 
-    if (pWebdav==0)
+    if (!pWebdav) {
+        qWarning(webdavDirParser)<<"NULL pointer passed";
         return false;
+    }
 
-    if (path.isEmpty())
+    if (path.isEmpty()) {
+        qWarning(webdavDirParser)<<"provided path is empty";
         return false;
+    }
 
-    if (!path.endsWith("/"))
+    if (!path.endsWith("/")) {
+        qWarning(webdavDirParser)<<"Provided path must end with '/'";//WTF?
         return false;
+    }
 
     m_webdav = pWebdav;
     m_path = path;
@@ -103,17 +118,26 @@ bool QWebdavDirParser::listDirectory(QWebdav *pWebdav, const QString &path)
 
 bool QWebdavDirParser::listItem(QWebdav *pWebdav, const QString &path)
 {
-    if (m_busy)
+    Q_ASSERT(pWebdav && "must provide pointer to QWebdav-instance");
+    if (m_busy) {
+        qWarning(webdavDirParser)<<"busy";
         return false;
+    }
 
-    if (m_reply!=0)
+    if (m_reply != 0) {
+        qWarning(webdavDirParser)<<"Already processing request";//WTF?
         return false;
+    }
 
-    if (pWebdav==0)
+    if (!pWebdav) {
+        qWarning(webdavDirParser)<<"NULL pointer passed";
         return false;
+    }
 
-    if (path.isEmpty())
+    if (path.isEmpty()) {
+        qWarning(webdavDirParser)<<"provided path is empty";
         return false;
+    }
 
     m_webdav = pWebdav;
     m_path = path;
@@ -132,16 +156,20 @@ bool QWebdavDirParser::listItem(QWebdav *pWebdav, const QString &path)
 
 bool QWebdavDirParser::getDirectoryInfo(QWebdav *pWebdav, const QString &path)
 {
-    if (!path.endsWith("/"))
+    if (!path.endsWith("/")) {
+        qWarning(webdavDirParser)<<"path must end with '/'";
         return false;
+    }
 
     return listItem(pWebdav, path);
 }
 
 bool QWebdavDirParser::getFileInfo(QWebdav *pWebdav, const QString &path)
 {
-    if (path.endsWith("/"))
+    if (path.endsWith("/")) {
+        qWarning(webdavDirParser)<<"path must NOT end with '/'";
         return false;
+    }
 
     return listItem(pWebdav, path);
 }
