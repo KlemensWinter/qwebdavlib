@@ -284,7 +284,7 @@ void QWebdavDirParser::parseMultiResponse(const QByteArray &data)
     QDomDocument multiResponse;
     multiResponse.setContent(data, true);
 
-    for(QDomElement thisRepsonse(multiResponse.documentElement().firstChildElement()); !thisRepsonse.isNull(); thisRepsonse = thisRepsonse.nextSiblingElement())
+    for(QDomElement thisResponse(multiResponse.documentElement().firstChildElement()); !thisResponse.isNull(); thisResponse = thisResponse.nextSiblingElement())
     {
         if (m_abort)
             return;
