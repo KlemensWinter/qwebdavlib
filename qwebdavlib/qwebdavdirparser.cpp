@@ -56,8 +56,8 @@ Q_LOGGING_CATEGORY(webdavDirParser, "QWebdav.parser")
 
 QWebdavDirParser::QWebdavDirParser(QObject *parent) : QObject(parent)
   ,m_mutex(QMutex::Recursive)
-  ,m_webdav(0)
-  ,m_reply(0)
+  ,m_webdav(nullptr)
+  ,m_reply(nullptr)
   ,m_path()
   ,m_includeRequestedURI(false)
   ,m_busy(false)
@@ -67,9 +67,9 @@ QWebdavDirParser::QWebdavDirParser(QObject *parent) : QObject(parent)
 
 QWebdavDirParser::~QWebdavDirParser()
 {
-    if (m_reply!=0) {
+    if (m_reply) {
         m_reply->deleteLater();
-        m_reply = 0;
+        m_reply = nullptr;
     }
 }
 
@@ -91,7 +91,7 @@ bool QWebdavDirParser::listPath(QWebdav *pWebdav, const QString &path, bool isDi
         return false;
     }
 
-    if (m_reply != 0) {
+    if (m_reply) {
         qWarning(webdavDirParser)<<"Already processing request";//WTF?
         return false;
     }
@@ -164,7 +164,7 @@ bool QWebdavDirParser::isBusy() const
 
 bool QWebdavDirParser::isFinished() const
 {
-    if (m_reply!=0)
+    if (m_reply)
         return m_reply->isFinished();
     else
         return true;
@@ -179,10 +179,10 @@ void QWebdavDirParser::abort()
 {
     m_abort = true;
 
-    if (m_reply!=0)
+    if (m_reply)
         m_reply->abort();
 
-    m_reply = 0;
+    m_reply = nullptr;
     m_busy = false;
 }
 
@@ -233,7 +233,7 @@ void QWebdavDirParser::replyFinished()
             }
         }
 
-        m_reply = 0;
+        m_reply = nullptr;
     }
 
     QMetaObject::invokeMethod(this,"replyDeleteLater", Qt::QueuedConnection, Q_ARG(QNetworkReply*, reply));
@@ -241,7 +241,7 @@ void QWebdavDirParser::replyFinished()
 
 void QWebdavDirParser::replyDeleteLater(QNetworkReply* reply)
 {
-    if (reply==0)
+    if (!reply)
         return;
 
 #ifdef DEBUG_WEBDAV
