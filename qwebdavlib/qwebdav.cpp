@@ -163,7 +163,7 @@ void QWebdav::acceptSslCertificate(const QString &sslCertDigestMd5,
 void QWebdav::replyReadyRead()
 {
     QNetworkReply* reply = qobject_cast<QNetworkReply*>(QObject::sender());
-    if (reply->bytesAvailable() < 256000)
+    if (reply->bytesAvailable() < 256000)//WTH? where does this constant come from?
         return;
 
     QIODevice* dataIO = m_inDataDevices.value(reply, 0);
