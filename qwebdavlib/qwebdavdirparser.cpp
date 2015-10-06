@@ -75,48 +75,15 @@ QWebdavDirParser::~QWebdavDirParser()
 
 bool QWebdavDirParser::listDirectory(QWebdav *pWebdav, const QString &path)
 {
-    Q_ASSERT(pWebdav && "must provide pointer to QWebdav-instance");
-    if (m_busy) {
-        qWarning(webdavDirParser)<<"busy";
-        return false;
-    }
-
-    if (m_reply != 0) {
-        qWarning(webdavDirParser)<<"Already processing request";//WTF?
-        return false;
-    }
-
-    if (!pWebdav) {
-        qWarning(webdavDirParser)<<"NULL pointer passed";
-        return false;
-    }
-
-    if (path.isEmpty()) {
-        qWarning(webdavDirParser)<<"provided path is empty";
-        return false;
-    }
-
-    if (!path.endsWith("/")) {
-        qWarning(webdavDirParser)<<"Provided path must end with '/'";//WTF?
-        return false;
-    }
-
-    m_webdav = pWebdav;
-    m_path = path;
-    m_busy = true;
-    m_abort = false;
-    m_includeRequestedURI = false;
-
-    m_reply = pWebdav->list(path);
-    connect(m_reply, SIGNAL(finished()), this, SLOT(replyFinished()));
-
-    if (!m_dirList.isEmpty())
-        m_dirList.clear();
-
-    return true;
+    return listPath(pWebdav, path, true);
 }
 
 bool QWebdavDirParser::listItem(QWebdav *pWebdav, const QString &path)
+{
+    return listPath(pWebdav, path, false);
+}
+
+bool QWebdavDirParser::listPath(QWebdav *pWebdav, const QString &path, bool isDirectory)
 {
     Q_ASSERT(pWebdav && "must provide pointer to QWebdav-instance");
     if (m_busy) {
@@ -139,19 +106,30 @@ bool QWebdavDirParser::listItem(QWebdav *pWebdav, const QString &path)
         return false;
     }
 
+    if (isDirectory && !path.endsWith("/")) {
+        qWarning(webdavDirParser)<<"Provided path must end with '/'";//WTF?
+        return false;
+    }
+
     m_webdav = pWebdav;
     m_path = path;
     m_busy = true;
-    m_includeRequestedURI = true;
+    m_abort = false;
+    m_includeRequestedURI = false;
 
-    m_reply = pWebdav->list(path, 0);
+    if(isDirectory) {
+        m_reply = pWebdav->list(path);
+    } else {
+        m_reply = pWebdav->list(path, 0);
+    }
+
+    connect(m_reply, SIGNAL(finished()), this, SLOT(replyFinished()));
 
     if (!m_dirList.isEmpty())
         m_dirList.clear();
 
-    connect(m_reply, SIGNAL(finished()), this, SLOT(replyFinished()));
-
     return true;
+
 }
 
 bool QWebdavDirParser::getDirectoryInfo(QWebdav *pWebdav, const QString &path)
@@ -568,3 +546,4 @@ QDateTime QWebdavDirParser::parseDateTime(const QString &input, const QString &t
 
     return datetime;
 }
+

@@ -105,6 +105,7 @@ protected:
     QDateTime parseDateTime( const QString &input, const QString &type);
 
 private:
+    bool listPath(QWebdav *pWebdav, const QString &path, bool isDirectory);
     QMutex m_mutex;
     QWebdav *m_webdav;
     QNetworkReply *m_reply;
