@@ -331,11 +331,7 @@ QNetworkReply* QWebdav::createWebdavRequest(const QString& method, QNetworkReque
     }
 #endif
 
-#if (QT_VERSION >= 0x050000)
     return m_nam.sendCustomRequest(req, method.toLatin1(), outgoingData);
-#else
-    return sendCustomRequest(req, method.toAscii(), outgoingData);
-#endif
 }
 
 QNetworkReply* QWebdav::createWebdavRequest(const QString& method, QNetworkRequest req, const QByteArray& outgoingData )
