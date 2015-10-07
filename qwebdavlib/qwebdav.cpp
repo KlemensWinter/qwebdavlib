@@ -190,19 +190,7 @@ void QWebdav::replyFinished(QNetworkReply* reply)
     }
     m_inDataDevices.remove(reply);
 
-    QMetaObject::invokeMethod(this,"replyDeleteLater", Qt::QueuedConnection, Q_ARG(QNetworkReply*, reply));
-}
-
-void QWebdav::replyDeleteLater(QNetworkReply* reply)
-{
-#ifdef DEBUG_WEBDAV
-    qDebug() << "QWebdav::replyDeleteLater()";
-#endif
-
-    QIODevice *outDataDevice = m_outDataDevices.value(reply, 0);
-    if (outDataDevice!=0)
-        outDataDevice->deleteLater();
-    m_outDataDevices.remove(reply);
+//    reply->deleteLater();//maybe - dunno?
 }
 
 void QWebdav::replyError(QNetworkReply::NetworkError)
@@ -351,7 +339,7 @@ QNetworkReply* QWebdav::createWebdavRequest(const char* method, QNetworkRequest 
 #endif
 
     QNetworkReply* reply = createWebdavRequest(method, req, dataIO);
-    m_outDataDevices.insert(reply, dataIO);
+    dataIO->setParent(reply);
     return reply;
 }
 

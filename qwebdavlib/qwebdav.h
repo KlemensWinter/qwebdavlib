@@ -132,7 +132,6 @@ signals:
 protected slots:
     void replyReadyRead();
     void replyFinished(QNetworkReply*);
-    void replyDeleteLater(QNetworkReply*);
     void replyError(QNetworkReply::NetworkError);
     void provideAuthenication(QNetworkReply* reply, QAuthenticator* authenticator);
     void sslErrors(QNetworkReply *reply,const QList<QSslError> &errors);
@@ -147,7 +146,6 @@ protected:
 private:
     QNetworkAccessManager m_nam;
     QUrl urlForPath(const QString& path);
-    QMap<QNetworkReply*, QIODevice*> m_outDataDevices;
     QMap<QNetworkReply*, QIODevice*> m_inDataDevices;
 
     QString m_rootPath;
