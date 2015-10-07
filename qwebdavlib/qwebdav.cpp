@@ -314,7 +314,7 @@ QUrl QWebdav::urlForPath(const QString &path)
     return ret;
 }
 
-QNetworkReply* QWebdav::createWebdavRequest(const QString& method, QNetworkRequest req, QIODevice* outgoingData)
+QNetworkReply* QWebdav::createWebdavRequest(const char* method, QNetworkRequest req, QIODevice* outgoingData)
 {
     if(outgoingData != 0 && outgoingData->size() !=0) {
         req.setHeader(QNetworkRequest::ContentLengthHeader, outgoingData->size());
@@ -331,10 +331,10 @@ QNetworkReply* QWebdav::createWebdavRequest(const QString& method, QNetworkReque
     }
 #endif
 
-    return m_nam.sendCustomRequest(req, method.toLatin1(), outgoingData);
+    return m_nam.sendCustomRequest(req, method, outgoingData);
 }
 
-QNetworkReply* QWebdav::createWebdavRequest(const QString& method, QNetworkRequest req, const QByteArray& outgoingData )
+QNetworkReply* QWebdav::createWebdavRequest(const char* method, QNetworkRequest req, const QByteArray& outgoingData )
 {
     QBuffer* dataIO = new QBuffer;
     dataIO->setData(outgoingData);
