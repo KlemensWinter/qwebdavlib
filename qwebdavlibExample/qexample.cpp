@@ -4,7 +4,9 @@ QExample::QExample(QObject *parent) :
     QObject(parent)
   ,m_path(qgetenv("QWEBDAV_EXAMPLE_PATH"))
 {
-    w.setConnectionSettings(QWebdav::HTTP, "127.0.0.1", qgetenv("QWEBDAV_EXAMPLE_ROOT"), "USERNAME", "PASSWORD", 8080);
+    Q_ASSERT(!qgetenv("QWEBDAV_EXAMPLE_ROOT").isEmpty() && "QWEBDAV_EXAMPLE_ROOT not defined");
+    int port = qgetenv("QWEBDAV_EXAMPLE_ROOT").toInt();
+    w.setConnectionSettings(QWebdav::HTTP, "127.0.0.1", qgetenv("QWEBDAV_EXAMPLE_ROOT"), "USERNAME", "PASSWORD", port);
     connect(&p, SIGNAL(finished()), this, SLOT(printList()));
     connect(&p, SIGNAL(errorChanged(QString)), this, SLOT(printError(QString)));
     connect(&w, SIGNAL(errorChanged(QString)), this, SLOT(printError(QString)));
