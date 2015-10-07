@@ -307,7 +307,7 @@ QString QWebdav::absolutePath(const QString &relPath)
 
 }
 
-QNetworkReply* QWebdav::createRequest(const QString& method, QNetworkRequest& req, QIODevice* outgoingData)
+QNetworkReply* QWebdav::createWebdavRequest(const QString& method, QNetworkRequest& req, QIODevice* outgoingData)
 {
     if(outgoingData != 0 && outgoingData->size() !=0) {
         req.setHeader(QNetworkRequest::ContentLengthHeader, outgoingData->size());
@@ -315,7 +315,7 @@ QNetworkReply* QWebdav::createRequest(const QString& method, QNetworkRequest& re
     }
 
 #ifdef DEBUG_WEBDAV
-    qDebug() << " QWebdav::createRequest1";
+    qDebug() << " QWebdav::createWebdavRequest1";
     qDebug() << "   " << method << " " << req.url().toString();
     QList<QByteArray> rawHeaderList = req.rawHeaderList();
     QByteArray rawHeaderItem;
@@ -331,14 +331,14 @@ QNetworkReply* QWebdav::createRequest(const QString& method, QNetworkRequest& re
 #endif
 }
 
-QNetworkReply* QWebdav::createRequest(const QString& method, QNetworkRequest& req, const QByteArray& outgoingData )
+QNetworkReply* QWebdav::createWebdavRequest(const QString& method, QNetworkRequest& req, const QByteArray& outgoingData )
 {
     QBuffer* dataIO = new QBuffer;
     dataIO->setData(outgoingData);
     dataIO->open(QIODevice::ReadOnly);
 
 #ifdef DEBUG_WEBDAV
-    qDebug() << " QWebdav::createRequest2";
+    qDebug() << " QWebdav::createWebdavRequest2";
     qDebug() << "   " << method << " " << req.url().toString();
     QList<QByteArray> rawHeaderList = req.rawHeaderList();
     QByteArray rawHeaderItem;
@@ -347,7 +347,7 @@ QNetworkReply* QWebdav::createRequest(const QString& method, QNetworkRequest& re
     }
 #endif
 
-    QNetworkReply* reply = createRequest(method, req, dataIO);
+    QNetworkReply* reply = createWebdavRequest(method, req, dataIO);
     m_outDataDevices.insert(reply, dataIO);
     return reply;
 }
@@ -409,7 +409,7 @@ QNetworkReply* QWebdav::search(const QString& path, const QString& q )
 
     req.setUrl(reqUrl);
 
-    return this->createRequest("SEARCH", req, query);
+    return this->createWebdavRequest("SEARCH", req, query);
 }
 
 QNetworkReply* QWebdav::get(const QString& path)
@@ -524,7 +524,7 @@ QNetworkReply* QWebdav::propfind(const QString& path, const QByteArray& query, i
     req.setUrl(reqUrl);
     req.setRawHeader("Depth", depth == 2 ? QString("infinity").toUtf8() : QString::number(depth).toUtf8());
 
-    return createRequest("PROPFIND", req, query);
+    return createWebdavRequest("PROPFIND", req, query);
 }
 
 QNetworkReply* QWebdav::proppatch(const QString& path, const QWebdav::PropValues& props)
@@ -565,7 +565,7 @@ QNetworkReply* QWebdav::proppatch(const QString& path, const QByteArray& query)
 
     req.setUrl(reqUrl);
 
-    return createRequest("PROPPATCH", req, query);
+    return createWebdavRequest("PROPPATCH", req, query);
 }
 
 QNetworkReply* QWebdav::mkdir (const QString& path)
@@ -577,7 +577,7 @@ QNetworkReply* QWebdav::mkdir (const QString& path)
 
     req.setUrl(reqUrl);
 
-    return createRequest("MKCOL", req);
+    return createWebdavRequest("MKCOL", req);
 }
 
 QNetworkReply* QWebdav::copy(const QString& pathFrom, const QString& pathTo, bool overwrite)
@@ -601,7 +601,7 @@ QNetworkReply* QWebdav::copy(const QString& pathFrom, const QString& pathTo, boo
     req.setRawHeader("Depth", "infinity");
     req.setRawHeader("Overwrite", overwrite ? "T" : "F");
 
-    return createRequest("COPY", req);
+    return createWebdavRequest("COPY", req);
 }
 
 QNetworkReply* QWebdav::move(const QString& pathFrom, const QString& pathTo, bool overwrite)
@@ -625,7 +625,7 @@ QNetworkReply* QWebdav::move(const QString& pathFrom, const QString& pathTo, boo
     req.setRawHeader("Depth", "infinity");
     req.setRawHeader("Overwrite", overwrite ? "T" : "F");
 
-    return createRequest("MOVE", req);
+    return createWebdavRequest("MOVE", req);
 }
 
 QNetworkReply* QWebdav::remove(const QString& path)
@@ -637,5 +637,5 @@ QNetworkReply* QWebdav::remove(const QString& path)
 
     req.setUrl(reqUrl);
 
-    return createRequest("DELETE", req);
+    return createWebdavRequest("DELETE", req);
 }
