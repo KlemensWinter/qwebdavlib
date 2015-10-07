@@ -314,7 +314,7 @@ QUrl QWebdav::urlForPath(const QString &path)
     return ret;
 }
 
-QNetworkReply* QWebdav::createWebdavRequest(const QString& method, QNetworkRequest& req, QIODevice* outgoingData)
+QNetworkReply* QWebdav::createWebdavRequest(const QString& method, QNetworkRequest req, QIODevice* outgoingData)
 {
     if(outgoingData != 0 && outgoingData->size() !=0) {
         req.setHeader(QNetworkRequest::ContentLengthHeader, outgoingData->size());
@@ -338,7 +338,7 @@ QNetworkReply* QWebdav::createWebdavRequest(const QString& method, QNetworkReque
 #endif
 }
 
-QNetworkReply* QWebdav::createWebdavRequest(const QString& method, QNetworkRequest& req, const QByteArray& outgoingData )
+QNetworkReply* QWebdav::createWebdavRequest(const QString& method, QNetworkRequest req, const QByteArray& outgoingData )
 {
     QBuffer* dataIO = new QBuffer;
     dataIO->setData(outgoingData);
@@ -409,10 +409,7 @@ QNetworkReply* QWebdav::search(const QString& path, const QString& q )
     query.append( q.toUtf8() );
     query.append( "</D:searchrequest>\r\n" );
 
-
-    QNetworkRequest req(urlForPath(path));
-
-    return this->createWebdavRequest("SEARCH", req, query);
+    return createWebdavRequest("SEARCH", QNetworkRequest(urlForPath(path)), query);
 }
 
 QNetworkReply* QWebdav::get(const QString& path)
@@ -422,9 +419,7 @@ QNetworkReply* QWebdav::get(const QString& path)
     qDebug() << "QWebdav::get() url = " << req.url().toString(QUrl::RemoveUserInfo);
 #endif
 
-    QNetworkRequest req(urlForPath(path));
-
-    return QNetworkAccessManager::get(req);
+    return QNetworkAccessManager::get(QNetworkRequest(urlForPath(path)));
 }
 
 QNetworkReply* QWebdav::get(const QString& path, QIODevice* data)
@@ -457,24 +452,20 @@ QNetworkReply* QWebdav::get(const QString& path, QIODevice* data, quint64 fromRa
 
 QNetworkReply* QWebdav::put(const QString& path, QIODevice* data)
 {
-
-    QNetworkRequest req(urlForPath(path));
 #ifdef DEBUG_WEBDAV
     qDebug() << "QWebdav::put() url = " << req.url().toString(QUrl::RemoveUserInfo);
 #endif
 
-    return QNetworkAccessManager::put(req, data);
+    return QNetworkAccessManager::put(QNetworkRequest(urlForPath(path)), data);
 }
 
 QNetworkReply* QWebdav::put(const QString& path, const QByteArray& data)
 {  
-
-    QNetworkRequest req(urlForPath(path));
 #ifdef DEBUG_WEBDAV
     qDebug() << "QWebdav::put() url = " << req.url().toString(QUrl::RemoveUserInfo);
 #endif
 
-    return QNetworkAccessManager::put(req, data);
+    return QNetworkAccessManager::put(QNetworkRequest(urlForPath(path)), data);
 }
 
 
@@ -538,14 +529,12 @@ QNetworkReply* QWebdav::proppatch(const QString& path, const QWebdav::PropValues
 
 QNetworkReply* QWebdav::proppatch(const QString& path, const QByteArray& query)
 {
-    QNetworkRequest req(urlForPath(path));
-    return createWebdavRequest("PROPPATCH", req, query);
+    return createWebdavRequest("PROPPATCH", QNetworkRequest(urlForPath(path)), query);
 }
 
 QNetworkReply* QWebdav::mkdir (const QString& path)
 {
-    QNetworkRequest req(urlForPath(path));
-    return createWebdavRequest("MKCOL", req);
+    return createWebdavRequest("MKCOL", QNetworkRequest(urlForPath(path)));
 }
 
 QNetworkReply* QWebdav::copy(const QString& pathFrom, const QString& pathTo, bool overwrite)
@@ -588,7 +577,5 @@ QNetworkReply* QWebdav::move(const QString& pathFrom, const QString& pathTo, boo
 
 QNetworkReply* QWebdav::remove(const QString& path)
 {
-    QNetworkRequest req(urlForPath(path));
-
-    return createWebdavRequest("DELETE", req);
+    return createWebdavRequest("DELETE", QNetworkRequest(urlForPath(path)));
 }

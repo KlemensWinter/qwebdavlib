@@ -138,8 +138,8 @@ protected slots:
     void sslErrors(QNetworkReply *reply,const QList<QSslError> &errors);
 
 protected:
-    QNetworkReply* createWebdavRequest(const QString& method, QNetworkRequest& req, QIODevice* outgoingData = 0 );
-    QNetworkReply* createWebdavRequest(const QString& method, QNetworkRequest& req, const QByteArray& outgoingData);
+    QNetworkReply* createWebdavRequest(const QString& method, QNetworkRequest req, QIODevice* outgoingData = 0 );
+    QNetworkReply* createWebdavRequest(const QString& method, QNetworkRequest req, const QByteArray& outgoingData);
 
     //! creates the absolute path from m_rootPath and relPath
     QString absolutePath(const QString &relPath);
