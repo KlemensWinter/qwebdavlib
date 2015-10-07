@@ -51,11 +51,9 @@
 #include "qwebdav.h"
 
 QWebdav::QWebdav (QObject *parent) : QObject(parent)
-  ,m_rootPath()
   ,m_username()
   ,m_password()
   ,m_baseUrl()
-  ,m_currentConnectionType(QWebdav::HTTP)
   ,m_authenticator_lastReply(0)
   ,m_sslCertDigestMd5("")
   ,m_sslCertDigestSha1("")
@@ -83,7 +81,7 @@ int QWebdav::port() const
 
 QString QWebdav::rootPath() const
 {
-    return m_rootPath;
+    return m_baseUrl.path();
 }
 
 QString QWebdav::username() const
@@ -96,14 +94,9 @@ QString QWebdav::password() const
     return m_password;
 }
 
-QWebdav::QWebdavConnectionType QWebdav::connectionType() const
-{
-    return m_currentConnectionType;
-}
-
 bool QWebdav::isSSL() const
 {
-    return (m_currentConnectionType==QWebdav::HTTPS);
+    return m_baseUrl.scheme() == QLatin1String("https");
 }
 
 void QWebdav::setConnectionSettings(const QWebdavConnectionType connectionType,
@@ -115,10 +108,7 @@ void QWebdav::setConnectionSettings(const QWebdavConnectionType connectionType,
                                     const QString &sslCertDigestMd5,
                                     const QString &sslCertDigestSha1)
 {
-    m_rootPath = rootPath;
-
-    if ((m_rootPath.size()>0) && (m_rootPath.endsWith("/")))
-        m_rootPath.chop(1);
+    QUrl url;
 
     QString uriScheme;
     switch (connectionType)
@@ -131,20 +121,24 @@ void QWebdav::setConnectionSettings(const QWebdavConnectionType connectionType,
         break;
     }
 
-    m_currentConnectionType = connectionType;
-
-    m_baseUrl.setScheme(uriScheme);
-    m_baseUrl.setHost(hostname);
-    m_baseUrl.setPath(rootPath);
+    url.setScheme(uriScheme);
+    url.setHost(hostname);
+    url.setPath(rootPath);
 
     if (port != 0) {
 
-        // use user-defined port number
-        if ( ! ( ( (port == 80) && (m_currentConnectionType==QWebdav::HTTP) ) ||
-               ( (port == 443) && (m_currentConnectionType==QWebdav::HTTPS) ) ) )
-            m_baseUrl.setPort(port);
+        // use user-defined port number - TG: WHAT THE FUCK???
+        if ( ! ( ( (port == 80) && (connectionType==QWebdav::HTTP) ) ||
+               ( (port == 443) && (connectionType==QWebdav::HTTPS) ) ) )
+            url.setPort(port);
     }
+    setConnectionSettings(url, username, password, sslCertDigestMd5, sslCertDigestSha1);
 
+}
+
+void QWebdav::setConnectionSettings(const QUrl &url, const QString &username, const QString &password, const QString &sslCertDigestMd5, const QString &sslCertDigestSha1)
+{
+    m_baseUrl = url;
     m_sslCertDigestMd5 = hexToDigest(sslCertDigestMd5);
     m_sslCertDigestSha1 = hexToDigest(sslCertDigestSha1);
 
@@ -235,7 +229,7 @@ QByteArray QWebdav::hexToDigest(const QString &input)
 
 QString QWebdav::absolutePath(const QString &relPath)
 {
-    return QString(m_rootPath + relPath);
+    return QString(rootPath() + relPath);
 
 }
 

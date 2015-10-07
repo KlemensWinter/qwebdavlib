@@ -78,7 +78,6 @@ public:
     QString rootPath() const;
     QString username() const;
     QString password() const;
-    QWebdavConnectionType connectionType() const;
     bool isSSL() const;
 
     void setConnectionSettings( const QWebdavConnectionType connectionType,
@@ -89,6 +88,12 @@ public:
                             int port = 0,
                             const QString &sslCertDigestMd5 = "",
                             const QString &sslCertDigestSha1 = "" );
+
+    void setConnectionSettings(const QUrl& url,
+                               const QString& username = QString(),
+                               const QString& password = QString(),
+                               const QString& sslCertDigestMd5 = QString(),
+                               const QString& sslCertDigestSha1 = QString());
 
     //! set SSL certificate digests after emitted checkSslCertifcate() signal
     void acceptSslCertificate(const QString &sslCertDigestMd5 = "",
@@ -137,7 +142,7 @@ protected:
     QNetworkReply* createRequest(const char *method, QNetworkRequest req, QIODevice* outgoingData = 0 );
     QNetworkReply* createRequest(const char *method, QNetworkRequest req, const QByteArray& outgoingData);
 
-    //! creates the absolute path from m_rootPath and relPath
+    //! creates the absolute path from m_baseUrl and relPath
     QString absolutePath(const QString &relPath);
 
 private:
@@ -145,7 +150,6 @@ private:
     QUrl urlForPath(const QString& path);
     QMap<QNetworkReply*, QIODevice*> m_inDataDevices;
 
-    QString m_rootPath;
     QString m_username;
     QString m_password;
     QUrl m_baseUrl;

@@ -23,7 +23,6 @@ void emptyLocalRoot(const QString& localRoot) {
 class WebDavTests : public QObject
 {
     Q_OBJECT
-    int m_port;
     QString m_localRoot;
 
 public:
@@ -37,11 +36,10 @@ private Q_SLOTS:
 };
 
 WebDavTests::WebDavTests()
-    :m_port(qgetenv("QWEBDAV_EXAMPLE_ROOT").toInt())
-    ,m_localRoot(qgetenv("QWEBDAV_EXAMPLE_LOCAL_ROOT"))
+    :m_localRoot(qgetenv("QWEBDAV_EXAMPLE_LOCAL_ROOT"))
 {
-    Q_ASSERT(!qgetenv("QWEBDAV_EXAMPLE_ROOT").isEmpty() && "QWEBDAV_EXAMPLE_ROOT not defined");
-    Q_ASSERT(!m_localRoot.isEmpty() && "QWEBDAV_EXAMPLE_LOCAL_ROOT not defined");
+    Q_ASSERT(!qgetenv("QWEBDAV_EXAMPLE_URL").isEmpty() && "QWEBDAV_EXAMPLE_ROOT not defined");
+    Q_ASSERT(!m_localRoot.isEmpty() && "QWEBDAV_EXAMPLE_LOCAL_URL not defined");
 }
 
 void WebDavTests::testGet() {
@@ -53,7 +51,7 @@ void WebDavTests::testGet() {
         f.write("blubb");
     }
     QWebdav webdav;
-    webdav.setConnectionSettings(QWebdav::HTTP, "127.0.0.1", qgetenv("QWEBDAV_EXAMPLE_ROOT"), "USERNAME", "PASSWORD", m_port);
+    webdav.setConnectionSettings(QUrl(qgetenv("QWEBDAV_EXAMPLE_URL")), "USERNAME", "PASSWORD");
     QByteArray ba;
     QBuffer* buf = new QBuffer(&ba);
     buf->open(QBuffer::WriteOnly);
@@ -71,7 +69,7 @@ void WebDavTests::testCopy() {
         f.write("blubb");
     }
     QWebdav webdav;
-    webdav.setConnectionSettings(QWebdav::HTTP, "127.0.0.1", qgetenv("QWEBDAV_EXAMPLE_ROOT"), "USERNAME", "PASSWORD", m_port);
+    webdav.setConnectionSettings(QUrl(qgetenv("QWEBDAV_EXAMPLE_URL")), "USERNAME", "PASSWORD");
     {
         auto reply = webdav.copy("/thefile", "/thecopy");
         QSignalSpy spy(reply, SIGNAL(finished()));
@@ -95,7 +93,7 @@ void WebDavTests::testMove() {
         f.write("blubb");
     }
     QWebdav webdav;
-    webdav.setConnectionSettings(QWebdav::HTTP, "127.0.0.1", qgetenv("QWEBDAV_EXAMPLE_ROOT"), "USERNAME", "PASSWORD", m_port);
+    webdav.setConnectionSettings(QUrl(qgetenv("QWEBDAV_EXAMPLE_URL")), "USERNAME", "PASSWORD");
     {
         auto reply = webdav.move("/thefile", "/thecopy");
         QSignalSpy spy(reply, SIGNAL(finished()));
@@ -119,7 +117,7 @@ void WebDavTests::testList()
     ::emptyLocalRoot(m_localRoot);
 
     QWebdav webdav;
-    webdav.setConnectionSettings(QWebdav::HTTP, "127.0.0.1", qgetenv("QWEBDAV_EXAMPLE_ROOT"), "USERNAME", "PASSWORD", m_port);
+    webdav.setConnectionSettings(QUrl(qgetenv("QWEBDAV_EXAMPLE_URL")), "USERNAME", "PASSWORD");
     QNetworkReply* reply = webdav.list("/");
     QSignalSpy spy(reply, SIGNAL(finished()));
     QVERIFY(spy.wait());
