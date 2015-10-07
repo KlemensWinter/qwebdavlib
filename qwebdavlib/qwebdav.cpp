@@ -307,6 +307,13 @@ QString QWebdav::absolutePath(const QString &relPath)
 
 }
 
+QUrl QWebdav::urlForPath(const QString &path)
+{
+    QUrl ret(m_baseUrl);
+    ret.setPath(absolutePath(path));
+    return ret;
+}
+
 QNetworkReply* QWebdav::createWebdavRequest(const QString& method, QNetworkRequest& req, QIODevice* outgoingData)
 {
     if(outgoingData != 0 && outgoingData->size() !=0) {
@@ -402,28 +409,20 @@ QNetworkReply* QWebdav::search(const QString& path, const QString& q )
     query.append( q.toUtf8() );
     query.append( "</D:searchrequest>\r\n" );
 
-    QNetworkRequest req;
 
-    QUrl reqUrl(m_baseUrl);
-    reqUrl.setPath(absolutePath(path));
-
-    req.setUrl(reqUrl);
+    QNetworkRequest req(urlForPath(path));
 
     return this->createWebdavRequest("SEARCH", req, query);
 }
 
 QNetworkReply* QWebdav::get(const QString& path)
 {
-    QNetworkRequest req;
-
-    QUrl reqUrl(m_baseUrl);
-    reqUrl.setPath(absolutePath(path));
 
 #ifdef DEBUG_WEBDAV
     qDebug() << "QWebdav::get() url = " << req.url().toString(QUrl::RemoveUserInfo);
 #endif
 
-    req.setUrl(reqUrl);
+    QNetworkRequest req(urlForPath(path));
 
     return QNetworkAccessManager::get(req);
 }
@@ -435,12 +434,8 @@ QNetworkReply* QWebdav::get(const QString& path, QIODevice* data)
 
 QNetworkReply* QWebdav::get(const QString& path, QIODevice* data, quint64 fromRangeInBytes)
 {
-    QNetworkRequest req;
 
-    QUrl reqUrl(m_baseUrl);
-    reqUrl.setPath(absolutePath(path));
-
-    req.setUrl(reqUrl);
+    QNetworkRequest req(urlForPath(path));
 
 #ifdef DEBUG_WEBDAV
     qDebug() << "QWebdav::get() url = " << req.url().toString(QUrl::RemoveUserInfo);
@@ -462,13 +457,8 @@ QNetworkReply* QWebdav::get(const QString& path, QIODevice* data, quint64 fromRa
 
 QNetworkReply* QWebdav::put(const QString& path, QIODevice* data)
 {
-    QNetworkRequest req;
 
-    QUrl reqUrl(m_baseUrl);
-    reqUrl.setPath(absolutePath(path));
-
-    req.setUrl(reqUrl);
-
+    QNetworkRequest req(urlForPath(path));
 #ifdef DEBUG_WEBDAV
     qDebug() << "QWebdav::put() url = " << req.url().toString(QUrl::RemoveUserInfo);
 #endif
@@ -478,13 +468,8 @@ QNetworkReply* QWebdav::put(const QString& path, QIODevice* data)
 
 QNetworkReply* QWebdav::put(const QString& path, const QByteArray& data)
 {  
-    QNetworkRequest req;
 
-    QUrl reqUrl(m_baseUrl);
-    reqUrl.setPath(absolutePath(path));
-
-    req.setUrl(reqUrl);
-
+    QNetworkRequest req(urlForPath(path));
 #ifdef DEBUG_WEBDAV
     qDebug() << "QWebdav::put() url = " << req.url().toString(QUrl::RemoveUserInfo);
 #endif
@@ -516,12 +501,7 @@ QNetworkReply* QWebdav::propfind(const QString& path, const QWebdav::PropNames& 
 
 QNetworkReply* QWebdav::propfind(const QString& path, const QByteArray& query, int depth)
 {
-    QNetworkRequest req;
-
-    QUrl reqUrl(m_baseUrl);
-    reqUrl.setPath(absolutePath(path));
-
-    req.setUrl(reqUrl);
+    QNetworkRequest req(urlForPath(path));
     req.setRawHeader("Depth", depth == 2 ? QString("infinity").toUtf8() : QString::number(depth).toUtf8());
 
     return createWebdavRequest("PROPFIND", req, query);
@@ -558,36 +538,19 @@ QNetworkReply* QWebdav::proppatch(const QString& path, const QWebdav::PropValues
 
 QNetworkReply* QWebdav::proppatch(const QString& path, const QByteArray& query)
 {
-    QNetworkRequest req;
-
-    QUrl reqUrl(m_baseUrl);
-    reqUrl.setPath(absolutePath(path));
-
-    req.setUrl(reqUrl);
-
+    QNetworkRequest req(urlForPath(path));
     return createWebdavRequest("PROPPATCH", req, query);
 }
 
 QNetworkReply* QWebdav::mkdir (const QString& path)
 {
-    QNetworkRequest req;
-
-    QUrl reqUrl(m_baseUrl);
-    reqUrl.setPath(absolutePath(path));
-
-    req.setUrl(reqUrl);
-
+    QNetworkRequest req(urlForPath(path));
     return createWebdavRequest("MKCOL", req);
 }
 
 QNetworkReply* QWebdav::copy(const QString& pathFrom, const QString& pathTo, bool overwrite)
 {
-    QNetworkRequest req;
-
-    QUrl reqUrl(m_baseUrl);
-    reqUrl.setPath(absolutePath(pathFrom));
-
-    req.setUrl(reqUrl);
+    QNetworkRequest req(urlForPath(pathFrom));
 
     // RFC4918 Section 10.3 requires an absolute URI for destination raw header
     //  http://tools.ietf.org/html/rfc4918#section-10.3
@@ -606,12 +569,7 @@ QNetworkReply* QWebdav::copy(const QString& pathFrom, const QString& pathTo, boo
 
 QNetworkReply* QWebdav::move(const QString& pathFrom, const QString& pathTo, bool overwrite)
 {
-    QNetworkRequest req;
-
-    QUrl reqUrl(m_baseUrl);
-    reqUrl.setPath(absolutePath(pathFrom));
-
-    req.setUrl(reqUrl);
+    QNetworkRequest req(urlForPath(pathFrom));
 
     // RFC4918 Section 10.3 requires an absolute URI for destination raw header
     //  http://tools.ietf.org/html/rfc4918#section-10.3
@@ -630,12 +588,7 @@ QNetworkReply* QWebdav::move(const QString& pathFrom, const QString& pathTo, boo
 
 QNetworkReply* QWebdav::remove(const QString& path)
 {
-    QNetworkRequest req;
-
-    QUrl reqUrl(m_baseUrl);
-    reqUrl.setPath(absolutePath(path));
-
-    req.setUrl(reqUrl);
+    QNetworkRequest req(urlForPath(path));
 
     return createWebdavRequest("DELETE", req);
 }

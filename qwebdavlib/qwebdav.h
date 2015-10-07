@@ -145,6 +145,7 @@ protected:
     QString absolutePath(const QString &relPath);
 
 private:
+    QUrl urlForPath(const QString& path);
     QMap<QNetworkReply*, QIODevice*> m_outDataDevices;
     QMap<QNetworkReply*, QIODevice*> m_inDataDevices;
 
