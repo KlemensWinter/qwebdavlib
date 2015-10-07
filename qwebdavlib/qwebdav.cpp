@@ -388,10 +388,14 @@ QNetworkReply* QWebdav::list(const QString& path, int depth)
 
 QNetworkReply* QWebdav::search(const QString& path, const QString& q )
 {
-    QByteArray query = "<?xml version=\"1.0\"?>\r\n";
-    query.append( "<D:searchrequest xmlns:D=\"DAV:\">\r\n" );
-    query.append( q.toUtf8() );
-    query.append( "</D:searchrequest>\r\n" );
+    QByteArray query;
+    QTextStream str(&query);
+    str.setCodec("UTF-8");
+    str<<"<?xml version=\"1.0\"?>\r\n"
+         "<D:searchrequest xmlns:D=\"DAV:\">\r\n";
+    str<<q;
+    str<<"</D:searchrequest>\r\n";
+    str.flush();
 
     return createWebdavRequest("SEARCH", QNetworkRequest(urlForPath(path)), query);
 }
@@ -456,20 +460,23 @@ QNetworkReply* QWebdav::put(const QString& path, const QByteArray& data)
 QNetworkReply* QWebdav::propfind(const QString& path, const QWebdav::PropNames& props, int depth)
 {
     QByteArray query;
+    QTextStream str(&query);
+    str.setCodec("UTF-8");
 
-    query = "<?xml version=\"1.0\" encoding=\"utf-8\" ?>";
-    query += "<D:propfind xmlns:D=\"DAV:\" >";
-    query += "<D:prop>";
-    foreach (QString ns, props.keys())
+    str<<"<?xml version=\"1.0\" encoding=\"utf-8\" ?>"
+         "<D:propfind xmlns:D=\"DAV:\" >"
+         "<D:prop>";
+    foreach (const QString& ns, props.keys())
     {
-        foreach (const QString key, props[ns])
+        foreach (const QString& key, props[ns])
             if (ns == "DAV:")
-                query += "<D:" + key + "/>";
+                str<<"<D:"<<key<<"/>";
             else
-                query += "<" + key + " xmlns=\"" + ns + "\"/>";
+                str<<"<"<<key<<" xmlns=\""<<ns<<"\"/>";
     }
-    query += "</D:prop>";
-    query += "</D:propfind>";
+    str<<"</D:prop>"
+         "</D:propfind>";
+    str.flush();
     return propfind(path, query, depth);
 }
 
@@ -485,29 +492,31 @@ QNetworkReply* QWebdav::propfind(const QString& path, const QByteArray& query, i
 QNetworkReply* QWebdav::proppatch(const QString& path, const QWebdav::PropValues& props)
 {
     QByteArray query;
+    QTextStream str(&query);
+    str.setCodec("UTF-8");
 
-    query = "<?xml version=\"1.0\" encoding=\"utf-8\" ?>";
-    query += "<D:proppatch xmlns:D=\"DAV:\" >";
-    query += "<D:prop>";
+    str<<"<?xml version=\"1.0\" encoding=\"utf-8\" ?>"
+         "<D:proppatch xmlns:D=\"DAV:\" >"
+         "<D:prop>";
     foreach (QString ns, props.keys())
     {
         QMap < QString , QVariant >::const_iterator i;
 
         for (i = props[ns].constBegin(); i != props[ns].constEnd(); ++i) {
             if (ns == "DAV:") {
-                query += "<D:" + i.key() + ">";
-                query += i.value().toString();
-                query += "</D:" + i.key() + ">" ;
+                str<<"<D:"<<i.key()<<">";
+                str<<i.value().toString();
+                str<<"</D:"<<i.key()<<">" ;
             } else {
-                query += "<" + i.key() + " xmlns=\"" + ns + "\">";
-                query += i.value().toString();
-                query += "</" + i.key() + " xmlns=\"" + ns + "\"/>";
+                str<<"<"<<i.key()<<" xmlns=\""<<ns<<"\">";
+                str<<i.value().toString();
+                str<<"</"<<i.key()<<" xmlns=\""<<ns<<"\"/>";
             }
         }
     }
-    query += "</D:prop>";
-    query += "</D:propfind>";
-
+    str<<"</D:prop>"
+         "</D:propfind>";
+    str.flush();
     return proppatch(path, query);
 }
 
