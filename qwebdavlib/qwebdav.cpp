@@ -466,13 +466,16 @@ QNetworkReply* QWebdav::propfind(const QString& path, const QWebdav::PropNames& 
     str<<"<?xml version=\"1.0\" encoding=\"utf-8\" ?>"
          "<D:propfind xmlns:D=\"DAV:\" >"
          "<D:prop>";
-    foreach (const QString& ns, props.keys())
-    {
-        foreach (const QString& key, props[ns])
+    QMapIterator<QString, QStringList> iter(props);
+    while(iter.hasNext()) {
+        iter.next();
+        QString ns(iter.key());
+        foreach(const QString& key, iter.value()) {
             if (ns == "DAV:")
                 str<<"<D:"<<key<<"/>";
             else
                 str<<"<"<<key<<" xmlns=\""<<ns<<"\"/>";
+        }
     }
     str<<"</D:prop>"
          "</D:propfind>";
@@ -498,19 +501,21 @@ QNetworkReply* QWebdav::proppatch(const QString& path, const QWebdav::PropValues
     str<<"<?xml version=\"1.0\" encoding=\"utf-8\" ?>"
          "<D:proppatch xmlns:D=\"DAV:\" >"
          "<D:prop>";
-    foreach (QString ns, props.keys())
-    {
-        QMap < QString , QVariant >::const_iterator i;
-
-        for (i = props[ns].constBegin(); i != props[ns].constEnd(); ++i) {
+    QMapIterator<PropValues::key_type, PropValues::mapped_type> propIter(props);
+    while(propIter.hasNext()) {
+        propIter.next();
+        QString ns(propIter.key());
+        QMapIterator<PropValues::mapped_type::key_type, PropValues::mapped_type::mapped_type> iter(propIter.value());
+        while(iter.hasNext()) {
+            iter.next();
             if (ns == "DAV:") {
-                str<<"<D:"<<i.key()<<">";
-                str<<i.value().toString();
-                str<<"</D:"<<i.key()<<">" ;
+                str<<"<D:"<<iter.key()<<">";
+                str<<iter.value().toString();
+                str<<"</D:"<<iter.key()<<">" ;
             } else {
-                str<<"<"<<i.key()<<" xmlns=\""<<ns<<"\">";
-                str<<i.value().toString();
-                str<<"</"<<i.key()<<" xmlns=\""<<ns<<"\"/>";
+                str<<"<"<<iter.key()<<" xmlns=\""<<ns<<"\">";
+                str<<iter.value().toString();
+                str<<"</"<<iter.key()<<" xmlns=\""<<ns<<"\"/>";
             }
         }
     }
