@@ -130,9 +130,6 @@ signals:
     void errorChanged(QString error);
 
 protected slots:
-    void replyReadyRead();
-    void replyFinished(QNetworkReply*);
-    void replyError(QNetworkReply::NetworkError);
     void provideAuthenication(QNetworkReply* reply, QAuthenticator* authenticator);
     void sslErrors(QNetworkReply *reply,const QList<QSslError> &errors);
 

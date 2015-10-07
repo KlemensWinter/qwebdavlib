@@ -1,5 +1,7 @@
 QT       += network xml
 
+QMAKE_CXXFLAGS += -std=c++11
+
 INCLUDEPATH += $${PWD}
 
 SOURCES += \

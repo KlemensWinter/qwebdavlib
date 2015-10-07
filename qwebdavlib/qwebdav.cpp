@@ -63,7 +63,6 @@ QWebdav::QWebdav (QObject *parent) : QObject(parent)
 {
     qRegisterMetaType<QNetworkReply*>("QNetworkReply*");
 
-    connect(&m_nam, SIGNAL(finished(QNetworkReply*)), this, SLOT(replyFinished(QNetworkReply*)));
     connect(&m_nam, SIGNAL(authenticationRequired(QNetworkReply*,QAuthenticator*)), this, SLOT(provideAuthenication(QNetworkReply*,QAuthenticator*)));
     connect(&m_nam, SIGNAL(sslErrors(QNetworkReply*,QList<QSslError>)), this, SLOT(sslErrors(QNetworkReply*,QList<QSslError>)));
 }
@@ -158,61 +157,6 @@ void QWebdav::acceptSslCertificate(const QString &sslCertDigestMd5,
 {
     m_sslCertDigestMd5 = hexToDigest(sslCertDigestMd5);
     m_sslCertDigestSha1 = hexToDigest(sslCertDigestSha1);
-}
-
-void QWebdav::replyReadyRead()
-{
-    QNetworkReply* reply = qobject_cast<QNetworkReply*>(QObject::sender());
-    if (reply->bytesAvailable() < 256000)//WTH? where does this constant come from?
-        return;
-
-    QIODevice* dataIO = m_inDataDevices.value(reply, 0);
-    if(dataIO == 0)
-        return;
-    dataIO->write(reply->readAll());
-}
-
-void QWebdav::replyFinished(QNetworkReply* reply)
-{
-#ifdef DEBUG_WEBDAV
-    qDebug() << "QWebdav::replyFinished()";
-#endif
-
-    disconnect(reply, SIGNAL(readyRead()), this, SLOT(replyReadyRead()));
-    disconnect(reply, SIGNAL(error(QNetworkReply::NetworkError)), this, SLOT(replyError(QNetworkReply::NetworkError)));
-
-    QIODevice* dataIO = m_inDataDevices.value(reply, 0);
-    if (dataIO != 0) {
-        dataIO->write(reply->readAll());
-        static_cast<QFile*>(dataIO)->flush();
-        dataIO->close();
-        delete dataIO;
-    }
-    m_inDataDevices.remove(reply);
-
-//    reply->deleteLater();//maybe - dunno?
-}
-
-void QWebdav::replyError(QNetworkReply::NetworkError)
-{
-    QNetworkReply* reply = qobject_cast<QNetworkReply*>(QObject::sender());
-    if (reply==0)
-        return;
-
-#ifdef DEBUG_WEBDAV
-    qDebug() << "QWebdav::replyError()  reply->url() == " << reply->url().toString(QUrl::RemoveUserInfo);
-#endif
-
-    if ( reply->error() == QNetworkReply::OperationCanceledError) {
-        QIODevice* dataIO = m_inDataDevices.value(reply, 0);
-        if (dataIO!=0) {
-            delete dataIO;
-            m_inDataDevices.remove(reply);
-        }
-        return;
-    }
-
-    emit errorChanged(reply->errorString());
 }
 
 void QWebdav::provideAuthenication(QNetworkReply *reply, QAuthenticator *authenticator)
@@ -431,9 +375,25 @@ QNetworkReply* QWebdav::get(const QString& path, QIODevice* data, quint64 fromRa
     }
 
     QNetworkReply* reply = m_nam.get(req);
-    m_inDataDevices.insert(reply, data);
-    connect(reply, SIGNAL(readyRead()), this, SLOT(replyReadyRead()));
-    connect(reply, SIGNAL(error(QNetworkReply::NetworkError)), this, SLOT(replyError(QNetworkReply::NetworkError)));
+    connect(reply, &QNetworkReply::readyRead, [reply, data](){
+        //if (reply->bytesAvailable() < 256000)//WTH? where does this constant come from?
+        //    return;
+
+        data->write(reply->readAll());
+
+    });
+    connect(reply, &QNetworkReply::finished, [reply, data] () {
+        data->write(reply->readAll());
+        data->close();//WTF
+        delete data;//WTF
+    });
+    connect(reply, (void(QNetworkReply::*)(QNetworkReply::NetworkError))&QNetworkReply::error, [this, reply, data] (QNetworkReply::NetworkError err) {
+        if(err == QNetworkReply::OperationCanceledError) {
+            data->close();//WTF
+            delete data;//WTF
+        }
+        emit errorChanged(reply->errorString());
+    });
 
     return reply;
 }
