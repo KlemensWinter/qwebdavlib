@@ -2,12 +2,12 @@
 
 QExample::QExample(QObject *parent) :
     QObject(parent)
+  ,m_path(qgetenv("QWEBDAV_EXAMPLE_PATH"))
 {
-    w.setConnectionSettings(QWebdav::HTTP, "127.0.0.1", "/cal.php", "USERNAME", "PASSWORD", 8080);
+    w.setConnectionSettings(QWebdav::HTTP, "127.0.0.1", qgetenv("QWEBDAV_EXAMPLE_ROOT"), "USERNAME", "PASSWORD", 8080);
     connect(&p, SIGNAL(finished()), this, SLOT(printList()));
     connect(&p, SIGNAL(errorChanged(QString)), this, SLOT(printError(QString)));
     connect(&w, SIGNAL(errorChanged(QString)), this, SLOT(printError(QString)));
-    m_path = "/";
 }
 
 void QExample::printList()
