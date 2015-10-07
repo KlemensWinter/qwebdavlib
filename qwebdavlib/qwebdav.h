@@ -59,7 +59,7 @@
 /**
  * @brief Main class used to handle the webdav protocol
  */
-class QWEBDAVSHARED_EXPORT QWebdav : public QNetworkAccessManager
+class QWEBDAVSHARED_EXPORT QWebdav : public QObject
 {
     Q_OBJECT
 
@@ -145,6 +145,7 @@ protected:
     QString absolutePath(const QString &relPath);
 
 private:
+    QNetworkAccessManager m_nam;
     QUrl urlForPath(const QString& path);
     QMap<QNetworkReply*, QIODevice*> m_outDataDevices;
     QMap<QNetworkReply*, QIODevice*> m_inDataDevices;

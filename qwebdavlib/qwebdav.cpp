@@ -50,7 +50,7 @@
 
 #include "qwebdav.h"
 
-QWebdav::QWebdav (QObject *parent) : QNetworkAccessManager(parent)
+QWebdav::QWebdav (QObject *parent) : QObject(parent)
   ,m_rootPath()
   ,m_username()
   ,m_password()
@@ -63,9 +63,9 @@ QWebdav::QWebdav (QObject *parent) : QNetworkAccessManager(parent)
 {
     qRegisterMetaType<QNetworkReply*>("QNetworkReply*");
 
-    connect(this, SIGNAL(finished(QNetworkReply*)), this, SLOT(replyFinished(QNetworkReply*)));
-    connect(this, SIGNAL(authenticationRequired(QNetworkReply*,QAuthenticator*)), this, SLOT(provideAuthenication(QNetworkReply*,QAuthenticator*)));
-    connect(this, SIGNAL(sslErrors(QNetworkReply*,QList<QSslError>)), this, SLOT(sslErrors(QNetworkReply*,QList<QSslError>)));
+    connect(&m_nam, SIGNAL(finished(QNetworkReply*)), this, SLOT(replyFinished(QNetworkReply*)));
+    connect(&m_nam, SIGNAL(authenticationRequired(QNetworkReply*,QAuthenticator*)), this, SLOT(provideAuthenication(QNetworkReply*,QAuthenticator*)));
+    connect(&m_nam, SIGNAL(sslErrors(QNetworkReply*,QList<QSslError>)), this, SLOT(sslErrors(QNetworkReply*,QList<QSslError>)));
 }
 
 QWebdav::~QWebdav()
@@ -332,7 +332,7 @@ QNetworkReply* QWebdav::createWebdavRequest(const QString& method, QNetworkReque
 #endif
 
 #if (QT_VERSION >= 0x050000)
-    return sendCustomRequest(req, method.toLatin1(), outgoingData);
+    return m_nam.sendCustomRequest(req, method.toLatin1(), outgoingData);
 #else
     return sendCustomRequest(req, method.toAscii(), outgoingData);
 #endif
@@ -419,7 +419,7 @@ QNetworkReply* QWebdav::get(const QString& path)
     qDebug() << "QWebdav::get() url = " << req.url().toString(QUrl::RemoveUserInfo);
 #endif
 
-    return QNetworkAccessManager::get(QNetworkRequest(urlForPath(path)));
+    return m_nam.get(QNetworkRequest(urlForPath(path)));
 }
 
 QNetworkReply* QWebdav::get(const QString& path, QIODevice* data)
@@ -442,7 +442,7 @@ QNetworkReply* QWebdav::get(const QString& path, QIODevice* data, quint64 fromRa
         req.setRawHeader("Range",fromRange);
     }
 
-    QNetworkReply* reply = QNetworkAccessManager::get(req);
+    QNetworkReply* reply = m_nam.get(req);
     m_inDataDevices.insert(reply, data);
     connect(reply, SIGNAL(readyRead()), this, SLOT(replyReadyRead()));
     connect(reply, SIGNAL(error(QNetworkReply::NetworkError)), this, SLOT(replyError(QNetworkReply::NetworkError)));
@@ -456,7 +456,7 @@ QNetworkReply* QWebdav::put(const QString& path, QIODevice* data)
     qDebug() << "QWebdav::put() url = " << req.url().toString(QUrl::RemoveUserInfo);
 #endif
 
-    return QNetworkAccessManager::put(QNetworkRequest(urlForPath(path)), data);
+    return m_nam.put(QNetworkRequest(urlForPath(path)), data);
 }
 
 QNetworkReply* QWebdav::put(const QString& path, const QByteArray& data)
@@ -465,7 +465,7 @@ QNetworkReply* QWebdav::put(const QString& path, const QByteArray& data)
     qDebug() << "QWebdav::put() url = " << req.url().toString(QUrl::RemoveUserInfo);
 #endif
 
-    return QNetworkAccessManager::put(QNetworkRequest(urlForPath(path)), data);
+    return m_nam.put(QNetworkRequest(urlForPath(path)), data);
 }
 
 
